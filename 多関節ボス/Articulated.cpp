@@ -3,14 +3,37 @@
 //----------------------------------------------------------------------------
 //指定数の連なる関節(関節群)を作成する
 //引数：作成する量(int), 親座標からの距離(float), 親座標を中心とした傾き(float), 傾く速度(float)
-void Articulated::CreateJointGroup(int num, float dis, float ang, float angSpd, int id)
+void Articulated::CreateJointGroup(int num, float dis, float ang, float angSpd, ML::Box2D& hb, const int id)
 {
 	if (num > 0)
 	{
-		joint.emplace_back(new Articulated(dis, ang + setAngle, angSpd));
+		joint.emplace_back(new Articulated(dis, ang + setAngle, angSpd, hb));
 		joint.back()->articID = id;
-		joint.back()->CreateJointGroup(--num, dis, ang, angSpd, ++id);
+		joint.back()->CreateJointGroup(--num, dis, ang, angSpd, hb, id + 1);
 	}
+}
+
+//----------------------------------------------------------------------------
+//保有する子供(関節)と縁を切る(子供の子供はそのまま)
+//引数：縁を切る子供の番号(int デフォルトで-1(全て))
+//※注意※従属しているだけの関節と縁を切ると、以降そいつの管理も殺害もできなくなるので注意だ！
+void Articulated::CutJointConnect(int jointNum)
+{
+	if (joint.empty())
+		return;
+
+	if (jointNum >= 0)
+	{
+		joint[jointNum]->setAngle += angle;
+		joint[jointNum]->pos = { pos.x + cos(joint[jointNum]->angle) * joint[jointNum]->dist,
+								 pos.y + sin(joint[jointNum]->angle) * joint[jointNum]->dist };
+		joint.erase(joint.begin() + jointNum);
+	}
+	else
+	{
+		joint.clear();
+	}
+	joint.shrink_to_fit();
 }
 
 //----------------------------------------------------------------------------
@@ -20,7 +43,7 @@ void Articulated::AllKillJoint()
 	if (joint.empty())
 		return;
 
-	for (vector<Articulated*>::iterator it = joint.begin();
+	for (auto it = joint.begin();
 		 it != joint.end();
 		 ++it)
 	{
@@ -34,11 +57,11 @@ void Articulated::AllKillJoint()
 //----------------------------------------------------------------------------
 //すでにある関節の情報にオフセットする
 //引数：オフセットする関節の番号(int), 距離(dis), 傾き(float), 傾く速度(float)
-void Articulated::SetJointOffset(int id, float dis, float ang, float angSpd)
+void Articulated::SetJointOffset(int jointNum, float dis, float ang, float angSpd)
 {
-	joint[id]->dist += dis;
-	joint[id]->setAngle += ang;
-	joint[id]->angleSpeed += angSpd;
+	joint[jointNum]->dist += dis;
+	joint[jointNum]->setAngle += ang;
+	joint[jointNum]->angleSpeed += angSpd;
 }
 
 //-----------------------------------------------------------------------------
@@ -49,9 +72,9 @@ void Articulated::MoveJointGroup(int onlyDirect)
 	if (joint.empty())
 		return;
 
-	for (vector<Articulated*>::iterator it = joint.begin();
-		it != joint.end();
-		++it)
+	for (auto it = joint.begin();
+		 it != joint.end();
+		 ++it)
 	{
 		if (onlyDirect < 0 || onlyDirect == (*it)->articID)
 		{
@@ -65,6 +88,26 @@ void Articulated::MoveJointGroup(int onlyDirect)
 	}
 }
 
+//----------------------------------------------------------------------------
+//各関節と矩形のあたり判定
+//引数：判定を行う矩形(ML::Box2D)
+//戻り値：当たったか否か
+bool Articulated::HitJoint(ML::Box2D targethb)
+{
+	if (joint.empty())
+		return false;
+
+	for (auto it = joint.begin();
+		it != joint.end();
+		++it)
+	{
+		if ((*it)->hitBase.OffsetCopy((*it)->pos).Hit(targethb) ||
+			(*it)->HitJoint(targethb))
+			return true;
+	}
+	return false;
+}
+
 //-----------------------------------------------------------------------------
 //関節群を描画する
 void Articulated::RenderJointGroup(string imageName, ML::Box2D& src, ML::Vec2& drawPos)
@@ -72,7 +115,7 @@ void Articulated::RenderJointGroup(string imageName, ML::Box2D& src, ML::Vec2& d
 	if (joint.empty())
 		return;
 
-	for (vector<Articulated*>::iterator it = joint.begin();
+	for (auto it = joint.begin();
 		 it != joint.end();
 		 ++it)
 	{

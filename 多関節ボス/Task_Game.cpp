@@ -30,10 +30,11 @@ namespace Game
 
 		boss.pos = { 0, 0 };
 		boss.speed = { 0, 0 };
+		boss.hitBase = { -32, -32, 64, 64 };
 
 		for (int i = 0; i < 4; ++i)
 		{
-			boss.CreateJointGroup(4, 20.f, ML::ToRadian(1.2f), ML::ToRadian(1.f));
+			boss.CreateJointGroup(4, 20.f, ML::ToRadian(1.2f), ML::ToRadian(1.f), ML::Box2D(-16, -16, 32, 32));
 			boss.SetJointOffset(i, 16.f, ML::ToRadian(90.f * i), ML::ToRadian(0.f));
 		}
 	}
@@ -60,8 +61,13 @@ namespace Game
 		if (in1.LStick.U.on) { boss.speed.y -= 2; }
 		if (in1.LStick.D.on) { boss.speed.y += 2; }
 		boss.pos += boss.speed;
-		boss.MoveJointGroup(-1);
 
+		if (in1.B1.on)
+		{
+			boss.CutJointConnect(0);
+		}
+		boss.MoveJointGroup();
+		
 		TaskFlag rtv = Task_Game;//取りあえず現在のタスクを指定
 		if (true == in1.ST.down) {
 			rtv = Task_Title;	//次のタスクをタイトルへ
@@ -75,7 +81,7 @@ namespace Game
 	void Render()
 	{
 		BackRender();
-		
+
 		{ //足
 			ML::Box2D src(0, 0, 32, 32);
 			ML::Vec2 drawPos(16, 16);
