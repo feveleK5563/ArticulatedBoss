@@ -61,12 +61,8 @@ namespace Game
 		if (in1.LStick.U.on) { boss.speed.y -= 2; }
 		if (in1.LStick.D.on) { boss.speed.y += 2; }
 		boss.pos += boss.speed;
-
-		if (in1.B1.on)
-		{
-			boss.CutJointConnect(0);
-		}
-		boss.MoveJointGroup();
+		if (in1.B1.on) { boss.MoveJointGroup(); }
+		else		   { boss.MoveJointGroup(0); }
 		
 		TaskFlag rtv = Task_Game;//取りあえず現在のタスクを指定
 		if (true == in1.ST.down) {

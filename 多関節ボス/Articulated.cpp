@@ -14,29 +14,6 @@ void Articulated::CreateJointGroup(int num, float dis, float ang, float angSpd, 
 }
 
 //----------------------------------------------------------------------------
-//保有する子供(関節)と縁を切る(子供の子供はそのまま)
-//引数：縁を切る子供の番号(int デフォルトで-1(全て))
-//※注意※従属しているだけの関節と縁を切ると、以降そいつの管理も殺害もできなくなるので注意だ！
-void Articulated::CutJointConnect(int jointNum)
-{
-	if (joint.empty())
-		return;
-
-	if (jointNum >= 0)
-	{
-		joint[jointNum]->setAngle += angle;
-		joint[jointNum]->pos = { pos.x + cos(joint[jointNum]->angle) * joint[jointNum]->dist,
-								 pos.y + sin(joint[jointNum]->angle) * joint[jointNum]->dist };
-		joint.erase(joint.begin() + jointNum);
-	}
-	else
-	{
-		joint.clear();
-	}
-	joint.shrink_to_fit();
-}
-
-//----------------------------------------------------------------------------
 //全ての子供(関節)を殺す
 void Articulated::AllKillJoint()
 {
