@@ -118,6 +118,9 @@
     <ClCompile Include="Articulated.cpp">
       <Filter>Game\Main</Filter>
     </ClCompile>
+    <ClCompile Include="Move.cpp">
+      <Filter>Game\Main</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myLib.h">
@@ -178,6 +181,9 @@
       <Filter>GE</Filter>
     </ClInclude>
     <ClInclude Include="Articulated.h">
+      <Filter>Game\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Move.h">
       <Filter>Game\Main</Filter>
     </ClInclude>
   </ItemGroup>

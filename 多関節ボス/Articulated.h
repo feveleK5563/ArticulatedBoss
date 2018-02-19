@@ -11,7 +11,7 @@ private:
 	float		setAngle;	 //自分の傾き
 	float		angleSpeed;	 //傾く速度
 
-	vector<Articulated*> joint;		//直下に位置する子供(関節)
+	vector<Articulated*> joint;		//直下に存在する子供(関節)
 
 public:
 	ML::Vec2	pos;		//座標
